@@ -1,0 +1,10 @@
+case_name,test,calibration_power_output,calibration_plane,optimization,stratisfaction_level,z_ref,U_ref,wd,wd_eff,x_range,y_range,z_range,type,D_rotor,spacing_x,spacing_y,hexagonal,n_x,n_y,equal,x_0,y_0,yaw_0,tilt_0,x_1,y_1,yaw_1,tilt_1,x_2,y_2,yaw_2,tilt_2
+1x1TURB_wd270_ws10_1x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,1,1,1,500,315,0,5,,,,,,,,
+2x1TURB_wd270_ws10_2x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,2,1,1,500,315,0,5,,,,,,,,
+3x1TURB_wd270_ws10_3x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,3,1,1,500,315,0,5,,,,,,,,
+4x1TURB_wd270_ws10_4x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,4,1,1,500,315,0,5,,,,,,,,
+2x2TURB_wd270_ws10_4x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,2,2,1,500,315,0,5,,,,,,,,
+3x3TURB_wd270_ws10_9x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,3,3,1,500,315,0,5,,,,,,,,
+4x4TURB_wd270_ws10_16x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,4,4,1,500,315,0,5,,,,,,,,
+5x5TURB_wd270_ws10_25x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,5,5,1,500,315,0,5,,,,,,,,
+6x6TURB_wd270_ws10_36x_y0_t5,1,,,1,neutral,100,10,270,0,,,,NREL 5MW,126,5,5,0,6,6,1,500,315,0,5,,,,,,,,
