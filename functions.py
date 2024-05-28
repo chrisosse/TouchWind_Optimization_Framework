@@ -96,76 +96,6 @@ def create_uniform_angles(
     return yaw_i, tilt_i
 
 
-# # Create farm configuration
-# def create_farm_config(
-#     case: dict,
-#     extra_layers: int = 0,
-# ):
-#     # Get number of turbines
-#     n_x = int(case['n_x'])
-#     n_y = int(case['n_y'])
-#     n_turbines = n_x * n_y
-
-#     # Initialize farm layout
-#     x_i = np.zeros((n_x, n_y + extra_layers))
-#     y_i = np.zeros((n_x, n_y + extra_layers))
-#     yaw_i = np.zeros((n_x, n_y + extra_layers))
-#     tilt_i = np.zeros((n_x, n_y + extra_layers))
-
-#     # Get x and y positions of turbines
-#     if case['equal']:
-#         spacing_x = case['spacing_x'] * case['D_rotor']
-#         spacing_y = case['spacing_y'] * case['D_rotor']
-        
-#         if case['hexagonal']:
-#             x_i[0, 0] = case['x_0']
-#             y_i[0, 0] = case['y_0']
-
-#             x_i[1, 0] = x_i[0, 0] + cosd(30) * spacing_x
-#             y_i[1, 0] = y_i[0, 0] + sind(30) * spacing_y
-
-#             for i in range(2, n_x):
-#                 x_i[i, 0] = x_i[i-2, 0] + cosd(30) * spacing_x * 2
-#                 y_i[i, 0] = y_i[i-2, 0]
-
-#             for i in range(1, n_y + extra_layers):
-#                 x_i[:, i] = x_i[:, 0]
-#                 y_i[:, i] = y_i[:, i-1] + sind(30) * spacing_y * 2
-
-#         else:
-#             for i in range(n_x):
-#                 for j in range(0, n_y + extra_layers):
-#                     x_i[i, j] = case['x_0'] + spacing_x * i
-#                     y_i[i, j] = case['y_0'] + spacing_y * j
-
-#         for i in range(n_x):
-#             for j in range(0, n_y + extra_layers):
-#                 yaw_i[i, j] = case['yaw_0']
-#                 tilt_i[i, j] = case['tilt_0']
-#     else:
-#         for i in range(n_turbines):
-#             x_i[0, i] = case['x_' + str(i)]
-#             y_i[0, i] = case['y_' + str(i)]
-#             yaw_i[0, i] = case['yaw_' + str(i)]
-#             tilt_i[0, i] = case['tilt_' + str(i)]
-
-#     # Create farm layout dictionary
-#     farm_config = {
-#         'wind_directions': np.array([case['wd']]),
-#         'wind_speeds': np.array([case['U_ref']]),
-#         'x_i': x_i,
-#         'y_i': y_i,
-#         'yaw_i': yaw_i,
-#         'tilt_i': tilt_i,
-#         'D_rotor': case['D_rotor'],
-#         'n_x': n_x,
-#         'n_y': n_y,
-#         'n_turbines': n_turbines,
-#     }
-
-#     return farm_config
-
-
 # Get misalignment angle
 def get_misalignment_angle(
     yaw,
@@ -191,3 +121,30 @@ def get_correction_factor_misalignment(
     correction_factor = a * np.abs(cosd(misalignment_angle))**b
 
     return correction_factor
+
+
+# Get streamwise velocity profile
+def U_profile(
+    z, 
+    z_ref, 
+    U_ref, 
+    alpha,
+):
+    z[z==0] = 1e-6
+    U = U_ref * (z / z_ref)**alpha
+    
+    return U
+
+
+# Get spanwise velocity profile
+def V_profile(
+    z, 
+    a, 
+    b, 
+    c, 
+    d
+):
+    z[z==0] = 1e-6
+    V = a**(b * z + c) + d
+    
+    return V
