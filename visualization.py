@@ -51,6 +51,9 @@ def plot_velocity_field(
     shrink: float = 0.5,
     levels: int = 200,
 ):    
+    # Make distance a float
+    distance = float(distance)
+
     # Get coordinates
     coordinates = {}
 
