@@ -13,27 +13,27 @@ colors = ['#F79123', '#014043', '#059589', '#19F7E2']
 
 
 # Plot farm layout 
-def plot_farm_layout(X, Y):
+def plot_farm_layout(x, y):
     fig = plt.figure()
     fig.set_size_inches(6, 4)
     ax = fig.add_subplot(1, 1, 1)
     ax.plot()
-    ax.scatter(X / 1000, Y / 1000, s=200, marker='2', color=colors[1])
+    ax.scatter(x / 1000, y / 1000, s=200, marker='2', color=colors[1])
     ax.set_xlabel("x [km]")
     ax.set_ylabel("y [km]")
     ax.set_axisbelow(True)
     ax.grid()
     ax.set_aspect('equal')
     spacing = 500
-    ax.set_xlim(((np.min(X)-spacing)/1000, (np.max(X)+spacing)/1000))
-    ax.set_ylim(((np.min(Y)-spacing)/1000, (np.max(Y)+spacing)/1000))
+    ax.set_xlim(((np.min(x)-spacing)/1000, (np.max(x)+spacing)/1000))
+    ax.set_ylim(((np.min(y)-spacing)/1000, (np.max(y)+spacing)/1000))
     plt.show()
 
 
 # PLot velocity field of X, Y, or Z plane at certain distances
 def plot_velocity_field(
     wakemodeling: WakeModeling,
-    farm_config: dict,
+    config: dict,
     component: str = 'U',
     plane: str = 'X',
     distance: float = 500.,
@@ -58,14 +58,14 @@ def plot_velocity_field(
     coordinates = {}
 
     if x_coords == None:
-        coordinates['X'] = np.linspace(np.min(farm_config['X']) - offset, np.max(farm_config['X']) + offset, x_resolution)
+        coordinates['X'] = np.linspace(np.min(config['x_ij']) - offset, np.max(config['x_ij']) + offset, x_resolution)
     elif len(x_coords) == 2:
         coordinates['X'] = np.linspace(x_coords[0], x_coords[1], x_resolution)
     else:
         coordinates['X'] = x_coords
 
     if y_coords == None:
-        coordinates['Y'] = np.linspace(np.min(farm_config['Y']) - offset, np.max(farm_config['Y']) + offset, y_resolution)
+        coordinates['Y'] = np.linspace(np.min(config['y_ij']) - offset, np.max(config['y_ij']) + offset, y_resolution)
     elif len(x_coords) == 2:
         coordinates['Y'] = np.linspace(y_coords[0], y_coords[1], y_resolution)
     else:
@@ -82,14 +82,14 @@ def plot_velocity_field(
     coordinates[plane] = np.array([distance])
 
     # Only calculate velocity field of given wind conditions
-    farm_config_copy = farm_config.copy()
+    config_copy = config.copy()
 
-    farm_config_copy['wind_directions'] = [farm_config_copy['wind_directions'][idw]]
-    farm_config_copy['wind_speeds'] = [farm_config_copy['wind_speeds'][ids]]
+    config_copy['wind_directions'] = [config_copy['wind_directions'][idw]]
+    config_copy['wind_speeds'] = [config_copy['wind_speeds'][ids]]
 
     # Calculate velocity field
     velocity_field = wakemodeling.get_velocity_field(
-        farm_config_copy,
+        config_copy,
         coordinates,
     )
 
