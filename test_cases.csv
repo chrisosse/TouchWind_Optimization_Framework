@@ -9,3 +9,4 @@ case_name,test,calibration_power_output,calibration_plane,optimization,stratisfa
 5x5TURB_wd270_ws10_25x_y0_t5,1,,,0,neutral,100,10,270,0,LES,standard,,,,NREL 5MW,126,5,5,rectangular,0,5,5,1,500,315,0,5,,,,,,,,
 6x6TURB_wd270_ws10_36x_y0_t5,1,,,0,neutral,100,10,270,0,LES,standard,,,,NREL 5MW,126,5,5,rectangular,0,6,6,1,500,315,0,5,,,,,,,,
 3TURB_wd270_ws10_3x_y0_t-30,1,,,1,neutral,100,10,270,0,LES,ref,,,,NREL 5MW,126,5,5,rectangular,0,3,1,0,500,315,0,-30,1130,315,0,-30,1760,315,0,-30
+3x3_optimization_test,1,,,1,neutral,100,10,270,0,LES,standard,,,,NREL 5MW,126,5,5,rectangular,0,3,3,1,500,315,0,-5,,,,,,,,
