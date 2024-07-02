@@ -10,6 +10,29 @@ from import_model import WakeModeling
 
 # Colors (TouchWind orange, darkblue, blue, lightblue)
 colors = ['#F79123', '#014043', '#059589', '#19F7E2']
+colorgrad = [
+    '#014043',
+    '#034C4E',
+    '#045858',
+    '#066563',
+    '#07716D',
+    '#097D78',
+    '#0B8983',
+    '#0C958D',
+    '#0EA298',
+    '#0FAEA2',
+    '#11BAAD',
+    '#13C6B8',
+    '#14D2C2',
+    '#16DFCD',
+    '#17EBD7',
+    '#19F7E2',
+]
+
+
+# Get color schemes
+def get_color_schemes():
+    return colors, colorgrad
 
 
 # Plot farm layout 
