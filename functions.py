@@ -44,19 +44,18 @@ def find_nearest(array, value):
 
 
 # Create farm layout
-def create_farm_layout(
-    D_rotor: float = 126,
+def create_layout(
+    shape: str = 'rectangular',
     n_x: int = 1,
     n_y: int = 1,
     spacing_x: float = 5,
     spacing_y: float = 5,
-    hexagonal: bool = False,
-    spacing_hex: float = 5,
+    D_rotor: float = 126,
 ):
-    if hexagonal:
+    if shape == 'hexagonal':
         # Calculate the vertical and horizontal spacing between hexagon centers
-        vertical_spacing = 0.5 * D_rotor * spacing_hex
-        horizontal_spacing = np.sqrt(3) * D_rotor * spacing_hex
+        vertical_spacing = 0.5 * D_rotor * spacing_x
+        horizontal_spacing = np.sqrt(3) * D_rotor * spacing_y
 
         # Lists to store the x and y coordinates of the grid points
         x_i = np.zeros([n_x, n_y])
@@ -148,3 +147,66 @@ def V_profile(
     V = a**(b * z + c) + d
     
     return V
+
+
+def get_downwind_masks(
+    wind_directions,
+    layout,
+    exclude_range: float = 90.,
+    use_coordinates: bool = True,
+):
+    # NOTE: This function only works for farm layouts that are
+    # created with the func.create_farm_layout function. 
+    # TODO: Create function that automatically gets right mask 
+    # for all kinds of layouts.
+    
+    # Get number of rows and columns
+    x_i = layout['x_i']
+    y_i = layout['y_i']
+    n_x = layout['n_x']
+    n_y = layout['n_y']
+    n_turbines = n_x * n_y
+
+    # If wind direction is single value, make list
+    try:
+        len(wind_directions)
+    except:
+        wind_directions = [wind_directions]
+
+    # Create mask to exclude downwind turbines
+    downwind_masks = np.zeros((len(wind_directions), n_turbines), dtype=bool)
+
+    for idw, wd in enumerate(wind_directions):
+        # For bottom column (wd = 0°)
+        if wd % 360 >= 360 - exclude_range / 2 or wd % 360 <= 0 + exclude_range / 2:
+            if use_coordinates:
+                downwind_masks[idw] = (downwind_masks[idw]) | (y_i == np.min(y_i))
+            else:
+                downwind_masks[idw, :n_x] = True
+        
+        # For left row (wd = 90°)
+        if wd % 360 >= 90 - exclude_range / 2 and wd % 360 <= 90 + exclude_range / 2:
+            if use_coordinates:
+                downwind_masks[idw] = (downwind_masks[idw]) | (x_i == np.min(x_i))
+            else:
+                for turb in range(n_turbines):
+                    if turb % n_x == 0:
+                        downwind_masks[idw, turb] = True
+
+        # For top column (wd = 180°)
+        if wd % 360 >= 180 - exclude_range / 2 and wd % 360 <= 180 + exclude_range / 2:
+            if use_coordinates:
+                downwind_masks[idw] = (downwind_masks[idw]) | (y_i == np.max(y_i))
+            else:
+                downwind_masks[idw, -n_x:] = True
+
+        # For right row (wd = 270°)
+        if wd % 360 >= 270 - exclude_range / 2 and wd % 360 <= 270 + exclude_range / 2:
+            if use_coordinates:
+                downwind_masks[idw] = (downwind_masks[idw]) | (x_i == np.max(x_i))
+            else:
+                for turb in range(n_turbines):
+                    if turb % n_x == n_x - 1:
+                        downwind_masks[idw, turb] = True
+
+    return downwind_masks
