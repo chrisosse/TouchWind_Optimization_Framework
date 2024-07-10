@@ -52,6 +52,29 @@ def plot_farm_layout(x, y):
     ax.set_ylim(((np.min(y)-spacing)/1000, (np.max(y)+spacing)/1000))
     plt.show()
 
+def plot_turbine_powers(
+    turbine_powers,
+    figsize=(12, 4)
+):
+    n_turbines = len(turbine_powers)
+    
+    fig = plt.figure()
+    fig.set_size_inches(figsize)
+    ax = fig.add_subplot(1, 1, 1)
+    x_locs = np.arange(n_turbines)
+    width = 0.7
+    bars = ax.bar(x_locs, turbine_powers/1e6, width=width, color=colors[0])
+    for turb, bar in enumerate(bars):
+        yval = bar.get_height() - 0.5
+        ax.text(bar.get_x() + bar.get_width()/2, yval + 1, np.round(turbine_powers[turb]/1e6, 2), ha='center', va='bottom', rotation=90)
+    ax.set_xticks(x_locs)
+    ax.set_xticklabels(["T{0}".format(i) for i in range(n_turbines)])
+    ax.set_ylabel("Power [MW]")
+    ax.set_axisbelow(True)
+    ax.grid(axis='y')
+    ax.set_ylim(0, 5.5)
+    plt.show()
+
 
 # PLot velocity field of X, Y, or Z plane at certain distances
 def plot_velocity_field(

@@ -122,6 +122,10 @@ class LES:
 
 
 class CCM:
+    '''
+    If one wants to reinstall FLORIS, type the following in the terminal:
+    'pip install -e floris_tilt'
+    '''
     def __init__(
         self,
         model_params: dict = None,

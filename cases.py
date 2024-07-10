@@ -82,9 +82,8 @@ class Case:
         self,
         yaw_i: list,
         tilt_i: list,
-        D_rotor_i: list = None,
         CT_i: list = None,
-       
+        D_rotor_i: list = None,       
     ):  
         # TODO: Add functionality to set CT and D for individual turbs
         
@@ -100,8 +99,8 @@ class Case:
         self.turbines = {
             'yaw_i': yaw_i,
             'tilt_i': tilt_i,
-            'D_rotor_i': D_rotor_i,
             'CT_i': CT_i,
+            'D_rotor_i': D_rotor_i,
         }
     
     def run(
