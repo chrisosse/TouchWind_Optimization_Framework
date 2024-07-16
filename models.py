@@ -240,12 +240,15 @@ class CCM:
         # Get yaw and tilt angles flattened and adjust for number of wind conditions
         yaw_angles = turbines['yaw_i']#.flatten()[None, None]
         tilt_angles = turbines['tilt_i']#.flatten()[None, None]
+        thrust_coefs = turbines['thrustcoef_i']
 
         # Ensure yaw and tilt have right dimensions
         if len(np.shape(yaw_angles)) == 1:
             yaw_angles = yaw_angles[None, None]
         if len(np.shape(tilt_angles)) == 1:
             tilt_angles = tilt_angles[None, None]
+        if len(np.shape(thrust_coefs)) == 1:
+            thrust_coefs = thrust_coefs[None, None]
 
         # Create copy of farm so initial farm is not messed up
         farm_copy = self.farm.copy()
@@ -254,6 +257,7 @@ class CCM:
         farm_copy.calculate_wake(
             yaw_angles=yaw_angles,
             tilt_angles=tilt_angles,
+            thrust_coefs=thrust_coefs,
         )
 
         # Get misalignment correction factors. This is not done anymore 
@@ -269,6 +273,36 @@ class CCM:
             correction_factors
 
         return turbine_powers
+    
+    def get_velocity_field(
+        self,
+        case,
+        coordinates,
+    ):
+        # Get x and y coordinates of turbines
+        x_i = case.layout['x_i'].flatten()
+        y_i = case.layout['y_i'].flatten()
+
+        # Create copy of farm so initial farm is not messed up
+        farm_copy = self.farm.copy()
+
+        # Calculate wakes
+        _, flowfield, _ = farm_copy.calculate_full_domain(
+            x_bounds=coordinates['X'],
+            y_bounds=coordinates['Y'],
+            z_bounds=coordinates['Z'],
+            yaw_angles=x_i[None, None],
+            tilt_angles=y_i[None, None],
+        )
+
+        # Save velocities in velocity field
+        velocity_field = {
+            'U': flowfield.u_sorted[0, 0],
+            'V': flowfield.v_sorted[0, 0],
+            'W': flowfield.w_sorted[0, 0],
+        }
+
+        return velocity_field
     
 
 class TestModel:

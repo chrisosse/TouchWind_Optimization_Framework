@@ -178,12 +178,14 @@ def get_optimization_dataframe(
             'message',
             'n_iterations',
             'function_values',
+            'result',
         ]
         for col in data_turbines:
             columns_wind_farm = columns_wind_farm + \
                 [f'{col}_{turb}' for turb in range(n_turbines)]
         df_optimization = pd.DataFrame(columns=columns_wind_farm)
         df_optimization['function_values'] = df_optimization['function_values'].astype('object')
+        df_optimization['result'] = df_optimization['result'].astype('object')
         print('No old data loaded')
 
     return df_optimization
