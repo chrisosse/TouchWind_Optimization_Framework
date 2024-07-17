@@ -1,24 +1,18 @@
 import numpy as np
 import pandas as pd
 import functions as func
-from models import (
-    LES,
-    CCM,
-    TestModel,
-)
+from models.LES import LES
 
 class Case:
     def __init__(
         self,
         name: str = 'test', 
-        model: CCM = CCM(),
         predef_case: dict = {}
     ):  
         # Set name
         self.name = name
-        self.model = model
         
-
+        
     def set_layout(
         self,
         shape: str,
@@ -32,7 +26,6 @@ class Case:
     ):
         # Set layout to predefined layout
         if x_i is not None and y_i is not None:
-            print('x_i and y_i set to predefined values')
             n_turbines = len(x_i)
         # Set layout according to specifications
         else: 
@@ -103,26 +96,26 @@ class Case:
             'D_rotor_i': D_rotor_i,
         }
     
-    def run(
-        self,
-    ):
-        self.model.reinitialize_farm(
-            conditions=self.conditions,
-            layout=self.layout,
-        )
+    # def run(
+    #     self,
+    # ):
+    #     self.model.reinitialize_farm(
+    #         conditions=self.conditions,
+    #         layout=self.layout,
+    #     )
         
-        self.turbine_powers = self.model.get_turbine_powers(
-            turbines=self.turbines,
-        )
+    #     self.turbine_powers = self.model.get_turbine_powers(
+    #         turbines=self.turbines,
+    #     )
 
-        return self.turbine_powers
+    #     return self.turbine_powers
 
 
 class CaseManager:
     def __init__(
         self,
         name: str = 'Case Manager',
-        ref_model = LES,
+        ref_model = LES(),
         ref_data_location: str = '../LES/',
         ref_standard_case: str = '1TURB_wd270_ws10_1x_y0_t5',
     ):
@@ -139,7 +132,6 @@ class CaseManager:
 
         # Get Atmospheric Boundary Layer parameters
         self.standard_ref_ABL_params = ref_model.get_ABL_params(
-            ref_model,
             ref_standard_case,
             ref_data_location,
         )
@@ -164,7 +156,6 @@ class CaseManager:
         location: str = '../TouchWind_Optimization_Framework/',
         file_name: str = 'test_cases.csv',
         masks: dict = {},
-        model = CCM(),
     ):
         df_cases = pd.read_csv(location + file_name)
 
@@ -178,7 +169,6 @@ class CaseManager:
 
             case = Case(
                 name,
-                model,
             )
 
             if case_dict['equal']:
@@ -212,7 +202,6 @@ class CaseManager:
                 ABL_params = self.standard_ref_ABL_params
             elif case_dict['load_ABL'] == 'ref':
                 ABL_params = self.ref_model.get_ABL_params(
-                    self.ref_model,
                     name,
                     self.ref_data_location,
                 )

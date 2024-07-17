@@ -10,6 +10,7 @@ from cases import (
 class Optimization:
     def __init__(
         self,
+        model,
         case: Case,
         wd: float,
         vars: list = ['yaw', 'tilt'],
@@ -23,6 +24,7 @@ class Optimization:
         sigma_wd: float = 2.5,
     ):
         # Initialize variables
+        self.model = model
         self.case = case
         self.wd = wd
         self.vars = vars
@@ -43,7 +45,7 @@ class Optimization:
         self.case.conditions['directions'] = self.wind_directions
         
         # Reinitialize wind farm
-        self.case.model.reinitialize_farm(
+        self.model.reinitialize_farm(
             self.case.conditions,
             self.case.layout,
         )
@@ -137,12 +139,11 @@ class Optimization:
         # Add variables to turbines in case
         for var in self.vars:
             self.case.turbines[f'{var}_i'] = variables[var]
-
-        # Add right conditions to case
-        self.case.conditions['directions'] = self.wind_directions
         
         # Get turbine powers
-        turbine_powers = self.case.run()
+        turbine_powers = self.model.get_turbine_powers(
+            self.case.turbines,
+        )
 
         # Get averaged over wds and wss total power
         total_power = np.sum(np.mean(turbine_powers, axis=(0, 1)))
@@ -220,15 +221,16 @@ def get_result_bounds_guess_dicts(
 
 
 def get_turbine_powers_conv(
-    case,
-    wind_directions,
-    values_conv,
+    model, 
+    case: Case,
+    wind_directions: list,
+    values_conv: dict,
 ):
     case.conditions['directions'] = wind_directions
     case.turbines['yaw_i'] = np.ones_like(case.turbines['yaw_i']) * values_conv['yaw']
     case.turbines['tilt_i'] = np.ones_like(case.turbines['tilt_i']) * values_conv['tilt']
     
-    return case.run()
+    return model.run(case)
 
 
 def get_all_parameters(

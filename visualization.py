@@ -1,12 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import functions as func
-import math
-
-from matplotlib.animation import FuncAnimation
-from import_model import WakeModeling
-
+from cases import Case
 
 # Colors (TouchWind orange, darkblue, blue, lightblue)
 colors = ['#F79123', '#014043', '#059589', '#19F7E2']
@@ -76,13 +71,13 @@ def plot_turbine_powers(
     plt.show()
 
 
-# PLot velocity field of X, Y, or Z plane at certain distances
+# Plot velocity field of X, Y, or Z plane at certain distances
 def plot_velocity_field(
-    wakemodeling: WakeModeling,
-    config: dict,
+    model,
+    case: Case,
     component: str = 'U',
     plane: str = 'X',
-    distance: float = 500.,
+    distance: float = None,
     idw: int = 0,
     ids: int = 0,
     x_coords: np.ndarray = None,
@@ -92,34 +87,50 @@ def plot_velocity_field(
     y_resolution: int = 100,
     z_resolution: int = 100,
     U_bounds: tuple = (4, 10),
-    offset: float = 500.,
+    offset: float = None,
     fig_size: tuple = (6, 4),
     shrink: float = 0.5,
     levels: int = 200,
+    title: bool = False,
 ):    
+    # Set distance and offset according to plane
+    if plane == 'X':
+        distance = 500
+        offset = 500
+    elif plane == 'Y':
+        distance = 0
+        offset = 500
+    else:
+        distance = 90
+        offset = 500   
+    
     # Make distance a float
     distance = float(distance)
+
+    # Get x and y coordinates of turbines
+    x_i = case.layout['x_i']
+    y_i = case.layout['y_i']
 
     # Get coordinates
     coordinates = {}
 
-    if x_coords == None:
-        coordinates['X'] = np.linspace(np.min(config['x_ij']) - offset, np.max(config['x_ij']) + offset, x_resolution)
+    if type(x_coords) == type(None):
+        coordinates['X'] = np.linspace(np.min(x_i) - offset, np.max(x_i) + offset, x_resolution)
     elif len(x_coords) == 2:
         coordinates['X'] = np.linspace(x_coords[0], x_coords[1], x_resolution)
     else:
         coordinates['X'] = x_coords
 
-    if y_coords == None:
-        coordinates['Y'] = np.linspace(np.min(config['y_ij']) - offset, np.max(config['y_ij']) + offset, y_resolution)
-    elif len(x_coords) == 2:
+    if type(y_coords) == type(None):
+        coordinates['Y'] = np.linspace(np.min(y_i) - offset, np.max(y_i) + offset, y_resolution)
+    elif len(y_coords) == 2:
         coordinates['Y'] = np.linspace(y_coords[0], y_coords[1], y_resolution)
     else:
         coordinates['Y'] = y_coords
 
-    if z_coords == None:
+    if type(z_coords) == type(None):
         coordinates['Z'] = np.linspace(0, 300, z_resolution)
-    elif len(x_coords) == 2:
+    elif len(z_coords) == 2:
         coordinates['Z'] = np.linspace(z_coords[0], z_coords[1], z_resolution)
     else:
         coordinates['Z'] = z_coords
@@ -128,14 +139,14 @@ def plot_velocity_field(
     coordinates[plane] = np.array([distance])
 
     # Only calculate velocity field of given wind conditions
-    config_copy = config.copy()
+    case_copy = copy.deepcopy(case)
 
-    config_copy['wind_directions'] = [config_copy['wind_directions'][idw]]
-    config_copy['wind_speeds'] = [config_copy['wind_speeds'][ids]]
+    case_copy.conditions['directions'] = [case_copy.conditions['directions'][idw]]
+    case_copy.conditions['speeds'] = [case_copy.conditions['speeds'][ids]]
 
     # Calculate velocity field
-    velocity_field = wakemodeling.get_velocity_field(
-        config_copy,
+    velocity_field = model.get_velocity_field(
+        case_copy,
         coordinates,
     )
 
@@ -163,9 +174,15 @@ def plot_velocity_field(
     cbar_U = plt.colorbar(cbar_U, ax=ax, shrink=shrink, location='right')
     cbar_U.set_label(f'{component} [m/s]')
 
+    # Invert x axis in plane is X
+    if plane == 'X':
+        plt.gca().invert_xaxis()
+
     # Plot settings, titles and labels
     ax.set_aspect('equal')
     ax.set_xlabel(f'{x_axis.lower()} [m]')
     ax.set_ylabel(f'{y_axis.lower()} [m]')
-    # ax.set_title(f'Wind direction: { np.round(farm_config['wind_direction']) }°')
+    if title:
+        direction = np.round(case.conditions['directions'][idw], 2)
+        ax.set_title(f'Wind direction: {direction}°')
     plt.show()
