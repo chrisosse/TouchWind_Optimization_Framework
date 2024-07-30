@@ -35,8 +35,8 @@ def get_color_schemes():
 
     Returns
     -------
-    _type_
-        _description_
+    colors, colorgrad : tuple
+        Colors of touchwind and colorgradient from dark to light blue
     '''
     return colors, colorgrad
 
@@ -174,7 +174,7 @@ def plot_velocity_field(
     plane : str, optional
         The plane in which to show the velocity, by default 'X'
     distance : float, optional
-        Distance from the origin to show the plane set 
+        Distance [m] from the origin to show the plane set 
         automatically when None, by default None.
     idw : int, optional
         The ID of the wind direction to show, by default 0
@@ -199,10 +199,10 @@ def plot_velocity_field(
     z_resolution : int, optional
         Resolution in the z-direction, by default 100
     bounds : tuple, optional
-        Boundaries of velocity in plot, if None set automatically 
+        Boundaries [m/s] of velocity in plot, if None set automatically 
         based on component. By default None
     offset : float, optional
-        Offset to show larger range than only turbines, if None 
+        Offset [m] to show larger range than only turbines, if None 
         set automatically based on plane. By default None
     shrink : float, optional
         Size of velocity colorbar, by default 0.5
