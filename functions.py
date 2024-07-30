@@ -4,7 +4,6 @@ import scipy as sc
 from scipy import optimize
 import math
 
-
 def sind(angle: float,):
     '''
     Get sine with input angle in degrees
@@ -359,6 +358,37 @@ def V_profile(
     V = a**(b * z + c) + d
     
     return V
+
+
+def get_coordinate_grid(
+    layout: dict,
+    resolution: int = 100,
+    offset: float = 150.,
+):
+    '''
+    _summary_
+
+    Parameters
+    ----------
+    case : Case
+        Instance of a case
+    resolution : int, optional
+        Resolution in all directions, by default 100
+    offset : float, optional
+        Offset from side turbines in x- and y-direction, by default 150.
+
+    Returns
+    -------
+    coordinates : dict
+        Dictionary containing coordinates in x-, y- and z-directions
+    '''
+    coordinates = {
+        'X': np.linspace(np.min(layout['x_i']) - offset, np.max(layout['x_i']) + offset, resolution),
+        'Y': np.linspace(np.min(layout['x_i']) - offset, np.max(layout['x_i']) + offset, resolution),
+        'Z': np.linspace(1e-6, 300, round(300/15))
+    }
+
+    return coordinates
 
 
 def get_downwind_masks(

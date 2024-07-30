@@ -6,16 +6,35 @@ from cases import Case
 
 class CCM:
     '''
-    If one wants to reinstall FLORIS, type the following in the terminal:
-    'pip install -e floris_tilt'
+    Class which can be used to run cases with the Cumulative Curl
+    Misalignment (CCM) model, as is included in FLORIS_tilt (FLORIS
+    version 3.4.1, github.com/chrisosse/floris_tilt) by Chris Osse 
+    (contact: ossechris@gmail.com).
+
+    If one wants to reinstall FLORIS_tilt, open the python environment
+    in the terminal, go to the directory where FLORIS_tilt is located, 
+    and run the following command: "pip install -e floris_tilt".
     '''
     def __init__(
         self,
         model_params: dict = None,
         input_file: str = 'model_files/CCM/case_initial.yaml',
     ):
-        self.input_file = input_file
+        '''
+        Initializer of the CCM class, which initialized FLORIS to
+        use the CCM model with the right model parameters.
 
+        Parameters
+        ----------
+        model_params : dict, optional
+            Dictionary containing all model parameters. When None,
+            standard calibrated parameters are used. By default None
+        input_file : str, optional
+            Directory to the yaml file to use as input for FLORIS, 
+            by default 'model_files/CCM/case_initial.yaml'
+        '''
+        # If no model parameters given, set calibrated ones. 
+        # NOTE: Add own calibrated values if required.
         if model_params == None:
             model_params = {
                 'ad': 0,
@@ -38,10 +57,9 @@ class CCM:
                 'ma_decay_gain': 1.7832719494462048,
             }
 
+        # Set farm and model parameters
+        self.farm = floris(input_file)
         self.model_params = model_params
-
-        self.farm = floris(self.input_file)
-
         self.set_model_params(
             self.model_params
         )
@@ -52,10 +70,12 @@ class CCM:
         model_params: dict,
     ):
         '''
-        Set model parameters to the CCM model.
+        Set the model parameters in FLORIS CCM model
 
-        Args:
-            model_params (dict): dictionary containing the model parameters
+        Parameters
+        ----------
+        model_params : dict
+            Dictionary containing the model parameters
         '''
         # Loop over all model parameters
         for key in model_params.keys():
@@ -82,6 +102,18 @@ class CCM:
         layout: dict,
         model_params: dict = None,
     ):
+        '''
+        Reinitialize farm with wind conditions and farm layout
+
+        Parameters
+        ----------
+        conditions : dict
+            Dictionary containing wind conditions
+        layout : dict
+            Dictionary containing farm layout
+        model_params : dict, optional
+            Dictionary containing model parameters, by default None
+        '''
         # Set model parameters to given or standard parameters
         if model_params is None:
             model_params = self.model_params
@@ -121,9 +153,24 @@ class CCM:
         self,
         turbines: dict,
     ):  
-        # Get yaw and tilt angles flattened and adjust for number of wind conditions
-        yaw_angles = turbines['yaw_i']#.flatten()[None, None]
-        tilt_angles = turbines['tilt_i']#.flatten()[None, None]
+        '''
+        Get the turbine powers of all turbines for all wind 
+        directions
+
+        Parameters
+        ----------
+        turbines : dict
+            Dictionary containing turbine settings
+
+        Returns
+        -------
+        turbine_powers : np.ndarray
+            3D array containing the turbine powers [W]. Shape:
+            (idw, ids, turb)
+        '''
+        # Get yaw and tilt angles
+        yaw_angles = turbines['yaw_i']
+        tilt_angles = turbines['tilt_i']
         thrust_coefs = turbines['thrustcoef_i']
 
         # Ensure yaw and tilt have right dimensions
@@ -164,6 +211,22 @@ class CCM:
         case: Case,
         model_params: dict = None,
     ):
+        '''
+        Run a case with the CCM model.
+
+        Parameters
+        ----------
+        case : Case
+            Instance of a case
+        model_params : dict, optional
+            Dictionary containing the model parameters, by default None
+
+        Returns
+        -------
+        turbine_powers : np.ndarray
+            3D array containing the turbine powers [W]. Shape:
+            (idw, ids, turb)
+        '''
         # Reinitialize farm
         self.reinitialize_farm(
             case.conditions,
@@ -188,6 +251,24 @@ class CCM:
         coordinates: dict,
         model_params: dict = None,
     ):
+        '''
+        Get the velocity field of a case in a 3D grid
+
+        Parameters
+        ----------
+        case : Case
+            Instance of a case
+        coordinates : dict
+            Dictionary containing 'X', 'Y', and 'Z' grid coordinates. 
+        model_params : dict, optional
+            Dictionary containing the model parameters, by default None
+
+        Returns
+        -------
+        velocity_field : dict
+            Dictionary containing arrays with velocity components 'U', 'V', and 'W'.
+            Shape of arrays: (idx, idy, idz)
+        '''
         # Reinitialize farm
         self.reinitialize_farm(
             case.conditions,
