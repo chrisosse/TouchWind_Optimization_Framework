@@ -176,6 +176,9 @@ class CCM:
             case.turbines,
         )
 
+        # Set turbine powers to case
+        case.turbine_powers = turbine_powers
+
         return turbine_powers
         
 
