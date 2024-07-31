@@ -212,7 +212,8 @@ class Optimization:
         '''
         The cost function which should be minimized by the 
         algorithm. In this case, we minimize the negative value
-        of the total power.
+        of the total power. A penalty can be given when total power 
+        is lower than conventional total power.
 
         Parameters
         ----------
@@ -239,16 +240,38 @@ class Optimization:
             self.case.turbines,
         )
 
-        # Get averaged over wds and wss total power
-        total_power = np.sum(np.mean(turbine_powers, axis=(0, 1)))
+        # Get total power per wind direction 
+        # (NOTE: Only 1 wind speed should be taken into account)
+        total_powers = np.sum(turbine_powers, axis=(1, 2))
+
+        # Initialize weighted average total powers
+        weighted_avg_total_powers = np.zeros(self.n_particles)
+        
+        # Get weighted average total power per particle based on probability distribution
+        for idw in range(self.n_discretized_wds):
+            start = idw * self.n_particles
+            end = (idw + 1) * self.n_particles
+
+            weighted_avg_total_powers += total_powers[start:end] * self.p_wds[idw]
+
+            # If penalty, get the power differences with conventional power
+            if self.penalty:
+                if idw == round(self.n_discretized_wds / 2):
+                    power_differences = self.total_power_conv - total_powers[start:end]
+
+        # If penalty, penalize if power is lower than conventional power
+        if self.penalty:
+            for p, power_difference in enumerate(power_differences):
+                if power_difference > 0:
+                    weighted_avg_total_powers[p] -= power_difference
         
         # Add function values, turbine and total powers to self
-        self.function_values.append(total_power)
+        self.function_values.append(weighted_avg_total_powers)
         self.turbine_powers = turbine_powers[int(np.floor(self.n_discretized_wds/2)), 0]
         self.total_power = np.sum(self.turbine_powers)
 
         # Return negative value because minimizing
-        return -total_power
+        return -weighted_avg_total_powers
 
 
 def get_optimization_dataframe(
@@ -313,6 +336,7 @@ def get_optimization_dataframe(
         df_optimization = pd.DataFrame(columns=columns_wind_farm)
 
         # Set certain columns to objects to allow lists in single cells
+        df_optimization['total_power'] = df_optimization['total_power'].astype('object')
         df_optimization['function_values'] = df_optimization['function_values'].astype('object')
         df_optimization['result'] = df_optimization['result'].astype('object')
         
