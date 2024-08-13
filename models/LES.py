@@ -2,6 +2,10 @@ import numpy as np
 import pandas as pd
 import scipy as sc
 import functions as func
+from paraview_csv_to_figures_functions import (
+    searchandretrievedata, 
+    load_turbineoutputfiles_into_dataframe,
+)
 
 class LES:
     '''
@@ -170,8 +174,21 @@ class LES:
 
     def get_velocity_field(
         self,
-        df_flowfield,
+        df_flowfield: pd.DataFrame,
     ):
+        '''
+        Get the velocity field of LES data.
+
+        Parameters
+        ----------
+        df_flowfield : pd.DataFrame
+            Dataframe containing LES flowfield
+
+        Returns
+        -------
+        velocity field : dictionary
+            Dictionary containing data of each velocity component U, V and W
+        '''
         # Get gridpoints
         X, Y, Z = self.get_gridpoints(df_flowfield)
 
@@ -205,4 +222,49 @@ class LES:
             velocity_field['W'][p] = df_W.to_numpy()
 
         return velocity_field
+    
+
+    def get_turbine_powers(
+        self,
+        case_name: str,
+        location: str = '../LES/',
+    ):
+        '''
+        _summary_
+
+        Parameters
+        ----------
+        case_name : str
+            the name of the case, by default '1TURB_wd270_ws10_1x_y0_t5'
+        location : str, optional
+            the path to the LES data, by default '../LES/'
+
+        Returns
+        -------
+        turbine_powers : np.ndarray
+            Array containing the turbine powers
+        '''
+        # Choose parameters to load
+        parameters_to_load = ['powerRotor'] # ['axialForce', 'Vaxial', 'powerRotor', 'thrust']
+
+        # Get power data
+        data = load_turbineoutputfiles_into_dataframe(
+            location, 
+            [case_name], 
+            parameters_to_load
+        )    
+
+        # Get turbine powers data
+        power_data = searchandretrievedata(
+            data, 
+            case_name, 
+            'powerRotor', 
+            [-1], 
+            [21000, 25000], 
+            'values')
+        
+        # Get average turbine powers
+        turbine_powers = np.mean(power_data[:, :, 0], axis=1)
+
+        return turbine_powers
         
