@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import copy
+import functions as func
 from cases import Case
 
 # Some of the nicest colorschemes you've ever seen
@@ -341,4 +342,102 @@ def plot_velocity_field(
         direction = np.round(case.conditions['directions'][idw], 2)
         ax.set_title(f'Wind direction: {direction}°')
     
+    return fig
+
+
+def plot_reference_velocity_field(
+    velocity_field: dict,
+    coordinates: dict,  
+    component: str = 'U',
+    plane: str = 'X',
+    distance: float = 0,
+    x_axis_bounds: tuple = None,
+    y_axis_bounds: tuple = None,
+    bounds: tuple = None,
+    shrink: float = 0.5,
+    levels: int = 200,
+    fig_size: tuple = (6, 4),
+):
+    '''
+    _summary_
+
+    Parameters
+    ----------
+    velocity_field : dict
+        Dictionary containing the velocity components
+    coordinates : dict
+        Dictionary containing the coordinates
+    component : str, optional
+        The wind velocity component to show, by default 'U'
+    plane : str, optional
+        The plane in which to show the velocity, by default 'X'
+    distance : float, optional
+        Distance [m] from the origin to show the plane set 
+        automatically when None, by default None.
+    x_axis_bounds : _type_, optional
+        Plot boundaries of the x axis, by default None
+    y_axis_bounds : tuple, optional
+        Plot boundaries of the y axis, by default None
+    bounds : tuple, optional
+        Boundaries [m/s] of velocity in plot, by default None
+    shrink : float, optional
+        Size of velocity colorbar, by default 0.5
+    levels : int, optional
+        Number of velocity levels in plot, by default 200
+    fig_size : tuple, optional
+        Figure size where first value is width ["] and second is height 
+        ["], by default (6, 4)
+
+    Returns
+    -------
+    _type_
+        _description_
+    '''
+    # Set bounds if no bounds set
+    if bounds == None:
+        if component == 'U':
+            bounds = (4, 10)
+        else:
+            bounds = (-1.5, 1.5)
+            
+    # Ensure the right plane and data is plotted
+    if plane == 'X':
+        x_axis, y_axis = 'Y', 'Z'
+        idx, _ = func.find_nearest(coordinates['X'], distance)
+        data = velocity_field[component][idx, :, :].T
+    if plane == 'Y':
+        x_axis, y_axis = 'X', 'Z'
+        idy, _ = func.find_nearest(coordinates['Y'], distance)
+        data = velocity_field[component][:, idy, :].T
+    if plane == 'Z':
+        x_axis, y_axis = 'X', 'Y'
+        idz, _ = func.find_nearest(coordinates['Z'], distance)
+        data = velocity_field[component][:, :, idz].T
+
+    # Create plot
+    fig, ax = plt.subplots()
+    fig.set_size_inches(fig_size)
+    ax.contourf(coordinates[x_axis], coordinates[y_axis], 
+                data, 
+                vmin=bounds[0], vmax=bounds[1], levels=levels, cmap='jet')
+
+    # Create colorbar
+    cbar_U = plt.cm.ScalarMappable(cmap="jet", norm=plt.Normalize(vmin=bounds[0], vmax=bounds[1]))
+    cbar_U.set_array([])
+    cbar_U = plt.colorbar(cbar_U, ax=ax, shrink=shrink, location='right')
+    cbar_U.set_label(f'{component} [m/s]')
+
+    # Invert x axis in plane is X
+    if plane == 'X':
+        plt.gca().invert_xaxis()
+
+    # Plot settings, titles and labels
+    ax.set_aspect('equal')
+    ax.set_xlabel(f'{x_axis.lower()} [m]')
+    ax.set_ylabel(f'{y_axis.lower()} [m]')
+    if x_axis_bounds is not None:
+        ax.set_xlim(x_axis_bounds)
+    if y_axis_bounds is not None:
+        ax.set_ylim(y_axis_bounds)
+
     return fig
