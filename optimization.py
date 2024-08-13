@@ -509,3 +509,99 @@ def print_progress(
     print(f'    Mean time per optimization run: {round(elapsed_time / ((idw + 1) * 60), 1)} minutes')
     print(f'    Estimation: {round(estimated_time_remaining / 60)} minutes remaining')
     print(f'    Currently at wind direction {round(wind_directions[idw], 1)} ({idw+1} of {len(wind_directions)})')
+
+
+def save_optimization_data_as_textfile(
+    optimization_case: Case,
+    df_optimization: pd.DataFrame,
+    wind_speed: float,
+    x_offset: float,
+    y_offset: float,
+    file_name: str,
+    location: str = '../Optimization Results/',
+    data_SOWFA: bool = True,
+):
+    '''
+    Save the optimization data in a text file (.txt) to be able to
+    copy the turbine setpoints quickly to other simulations, such 
+    as SOWFA.
+
+    Parameters
+    ----------
+    optimization_case : Case
+        The optimization case instance
+    df_optimization : pd.DataFrame
+        The resulting optimization dataframe
+    wind_speed : float
+        The wind speed [m/s]
+    x_offset : float
+        The offset of the turbine in the x-direction, closest to 0.
+        This ensures the turbines are not located at the domain edge.
+    y_offset : float
+        The offset of the turbine in the y-direction, closest to 0.
+        This ensures the turbines are not located at the domain edge.
+    file_name : str
+        The file name of the txt.file (without extension)
+    location : str, optional
+        The location where to save the file, by default 
+        '../Optimization Results/'
+    data_SOWFA : bool, optional
+        Indicator to save for SOWFA puposes, which automatically changes
+        yaw and tilt angles to the right input values for SOWFA, 
+        by default True
+    '''
+    with open(location + file_name + '.txt', 'w') as file:
+        # File name
+        file.write(f'{file_name}\n')
+
+        for idw, wd in enumerate(df_optimization['wind_direction']):
+            # Wind direction
+            file.write(f'\nWind direction: {wd}\n')
+
+            # Wind speed
+            file.write(f'  Wind speed: {wind_speed}\n')
+
+            # Location
+            file.write(f'  Location\n')
+            layout_x = optimization_case.layout['x_i'].flatten()
+            layout_y = optimization_case.layout['y_i'].flatten()
+
+            if data_SOWFA:
+                layout_x = layout_x - np.min(layout_x) + x_offset
+                layout_y = layout_y - np.min(layout_y) + y_offset
+                file.write(f'   X: {np.round(layout_x, 2)}\n')
+                file.write(f'   Y: {np.round(layout_y, 2)}\n')
+            else:
+                file.write(f'   X: {layout_x}\n')
+                file.write(f'   Y: {layout_y}\n')
+
+            # Yaw angle
+            wd_mask = df_optimization['wind_direction'] == wd
+            yaw_columns = [item for item in df_optimization.columns if 'yaw' in item]
+            yaw_angles = df_optimization[wd_mask][yaw_columns].values[0]
+
+            file.write(f'  Yaw angle\n')
+            if data_SOWFA:
+                file.write(f'   yaw: {np.round(wd + yaw_angles, 2)}\n')
+            else:
+                file.write(f'   yaw: {yaw_angles}\n')
+
+            # Tilt angle
+            tilt_columns = [item for item in df_optimization.columns if 'tilt' in item]
+            tilt_angles = df_optimization[wd_mask][tilt_columns].values[0]
+
+            file.write(f'  Tilt angle\n')
+            if data_SOWFA:
+                file.write(f'   tilt: {np.round(-1 * tilt_angles, 2)}\n')
+            else:
+                file.write(f'   tilt: {tilt_angles}\n')
+
+            # Thrust coefficient angle
+            thrust_columns = [item for item in df_optimization.columns if 'thrust' in item]
+            thrust_coefs = df_optimization[wd_mask][thrust_columns].values[0]
+
+            file.write(f'  Trhust coefficient\n')
+            if data_SOWFA:
+                file.write(f'   thrust: {np.round(thrust_coefs, 2)}\n')
+            else:
+                file.write(f'   thrust: {thrust_coefs}\n')
