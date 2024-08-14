@@ -331,3 +331,40 @@ class CaseManager:
 
         # Reset case names
         self.set_case_names()
+
+
+    def add_case(
+        self,
+        case: Case,
+    ):
+        '''
+        Add a new case to the case manager.
+
+        Parameters
+        ----------
+        case : Case
+            Instance of a case
+        '''
+        # set case
+        self.cases[case.name] = case
+
+        # Reset case names
+        self.set_case_names()
+
+    def remove_case(
+        self,
+        name: str,
+    ):
+        '''
+        Remove case from case manager
+
+        Parameters
+        ----------
+        name : str
+            Name of a case
+        '''
+        # Remove case from dictionary
+        self.cases.pop(name)
+
+        # Reset case names
+        self.set_case_names()
