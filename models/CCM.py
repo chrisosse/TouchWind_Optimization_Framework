@@ -166,7 +166,7 @@ class CCM:
         -------
         turbine_powers : np.ndarray
             3D array containing the turbine powers [W]. Shape:
-            (idw, ids, turb)
+            (n_directions, n_speeds, n_turbines)
         '''
         # Get yaw and tilt angles
         yaw_angles = turbines['yaw_i']

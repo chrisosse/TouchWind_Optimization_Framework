@@ -34,6 +34,7 @@ class Case:
         D_rotor: float | np.ndarray = 126,
         x_i: np.ndarray = None,
         y_i: np.ndarray = None,
+        z_i: np.ndarray = None,
     ):
         '''
         Set the layout of the wind farm.
@@ -73,6 +74,10 @@ class Case:
             )
             n_turbines = n_x * n_y
 
+        # Set hub height to 90 if None
+        if z_i is None:
+            z_i = np.array([90] * n_turbines)
+
         # Set layout
         self.layout = {
             'shape': shape,
@@ -80,6 +85,7 @@ class Case:
             'n_y': n_y,
             'x_i': x_i,
             'y_i': y_i,
+            'z_i': z_i,
             'n_turbines': n_turbines,
         }
 

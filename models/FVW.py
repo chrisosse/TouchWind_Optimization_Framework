@@ -1,13 +1,11 @@
 import numpy as np
-
 from cases import Case
 
-class TestModel:
+from models.FVW_model import FVW_model
+
+class FVW:
     '''
-    Class which can be used to implement a new model. Copy
-    this file and change everything needed to make it work for 
-    the new model. The mandatory functions and their in and 
-    outputs are already stated in this file.
+    TODO: Documentation!
     '''
     def __init__(
         self,
@@ -22,33 +20,38 @@ class TestModel:
             Dictionary containing all model parameters. When None,
             standard calibrated parameters are used. By default None
         '''
-        # Set model parameters to standard parameter values
-        if model_params == None:
-            model_params = {
-                # Add parameter name and value
-            }
+        # The standard model parameter set
+        standard_model_params = {
+            'n_r': 40,
+            'n_e': 16,
+            'n_p': 16,
+        }
 
-        self.model_params = model_params
+        # Add input model params to standard model params
+        for key, value in zip(model_params.keys(), model_params.values()):
+            standard_model_params[key] = value
 
-        self.set_model_params(
-            self.model_params
-        )
+        # Set updated model params as model params
+        self.model_params = standard_model_params
+
+        # Create instance of FVW model
+        self.farm = FVW_model(self.model_params)
 
 
     def set_model_params(
         self,
-        model_params,
+        model_params: dict,
     ):
         '''
-        Set the model parameters in FLORIS CCM model
+        Set the model parameters in FVW model
 
         Parameters
         ----------
         model_params : dict
             Dictionary containing the model parameters
         '''
-        # Enter code here to set model parameters to the model
-        pass
+        # Run initialize model again
+        self.farm.__init__(model_params)
         
 
     def reinitialize_farm(
@@ -74,11 +77,26 @@ class TestModel:
             model_params = self.model_params
         
         # Set model parameters
-            self.set_model_params(model_params)
+        self.set_model_params(model_params)
 
-        self.conditions = conditions
+        # Set conditions
+        self.farm.set_wind_conditions(
+            conditions['directions'][0],
+            conditions['speeds'][0],
+            conditions['ABL_params'],
+        )
 
-        # Add code to reinitialize farm with wind conditions and farm layout
+        # Get turbine positions
+        turbine_positions = np.zeros((layout['n_turbines'], 3))
+        turbine_positions[:, 0] = layout['x_i']
+        turbine_positions[:, 1] = layout['y_i']
+        turbine_positions[:, 2] = layout['z_i']
+        turbine_positions = turbine_positions.tolist()
+
+        # Set layout
+        self.farm.set_wind_farm_layout(
+            turbine_positions,
+        )
         
 
     def get_turbine_powers(
@@ -98,19 +116,25 @@ class TestModel:
         -------
         turbine_powers : np.ndarray
             3D array containing the turbine powers [W]. Shape:
-            (idw, ids, turb)
+            (n wind directions, n speeds, n turbines)
         '''
-        # Change this code to get the power of all turbines for all conditions
-        # shape of turbine powers is (n_directions, n_speeds, n_turbines)
-        n_turbines = len(turbines['yaw_i'])
+        # TODO Calculate axial induction from thrust coefficient
+        axial_inductions = np.ones((len(turbines['thrustcoef_i']))) * 0.27
         
-        turbine_powers = np.zeros((
-            len(self.conditions['directions']), 
-            len(self.conditions['speeds']),
-            n_turbines,
-        ))
+        # Set turbine properties
+        self.farm.set_turbine_properties(
+            turbines['yaw_i'],
+            turbines['tilt_i'],
+            axial_inductions,
+            turbines['D_rotor_i'],
+        )
+        
+        # Run model
+        self.farm.run_model()
 
-        turbine_powers[:, :] = np.random.random(size=n_turbines)
+        # Get turbine powers
+        turbine_powers = np.zeros((1, 1, len(turbines['yaw_i'])))
+        turbine_powers[0, 0] = self.farm.get_turbine_powers()
         
         return turbine_powers
     
