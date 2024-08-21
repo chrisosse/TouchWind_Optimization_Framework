@@ -287,7 +287,7 @@ class FVW_model:
         iturbine,
         X0,
     ): 
-        n = self.get_rotation_matrix(self.phi[turbine], self.psi[turbine]) @ self.e_x  #[1x3]
+        n = self.get_rotation_matrix(self.phi[turbine], self.psi[turbine] + self.wind_direction_deg) @ self.e_x  #[1x3]
 
         if self.k == 0:
             u_r = self.calc_average_wind_speed_at_rotor(U0) # [1x3]
