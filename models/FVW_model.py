@@ -8,6 +8,8 @@ import math
 class FVW_model:
     '''
     _summary_
+    Note: The Free Vortex Wake model does not allow more than
+    one wind conditions at a time.
 
     Returns
     -------
@@ -69,11 +71,13 @@ class FVW_model:
         # Assumption that is stays constant over time
         
         # Get wind direction in radians
-        direction_rad = math.radians(direction % 270) # [rad]
+        self.wind_direction_deg = (270 - direction) % 360
+        self.wind_direction_rad = math.radians(self.wind_direction_deg) # [rad]
+        self.wind_speed = speed
         
         # Get velocity components in x, y and z
-        self.x_inflow = speed * np.cos(direction_rad) * np.cos(direction_rad) # [m/s]
-        self.y_inflow = speed * np.cos(direction_rad) * np.sin(direction_rad) # [m/s]
+        self.x_inflow = speed * np.cos(self.wind_direction_rad) # [m/s]
+        self.y_inflow = speed * np.sin(self.wind_direction_rad) # [m/s]
         self.z_inflow = 0 # [m/s]
         
         # Create inflow matrix
@@ -84,8 +88,8 @@ class FVW_model:
 
         # Unit vector in downstread direction [-]
         self.e_x = np.array([ 
-            np.cos(direction_rad),
-            np.sin(direction_rad),
+            np.cos(self.wind_direction_rad),
+            np.sin(self.wind_direction_rad),
             0,
         ]) 
 
@@ -99,19 +103,19 @@ class FVW_model:
 
     def set_turbine_properties(
         self,
-        yaw_angles: list = [0],
-        tilt_angles: list = [0],
-        axial_inductions: list = [0.27],
-        rotor_diameters: list = [126],
+        yaw_angles: np.ndarray = np.array([0]),
+        tilt_angles: np.ndarray = np.array([0]),
+        axial_inductions: np.ndarray = np.array([0.27]),
+        rotor_diameters: np.ndarray = np.array([126]),
     ):
         # TODO Make rotor diameter variable across different turbines?
-        self.psi = yaw_angles # yaw angle [deg]
+        self.psi = yaw_angles - self.wind_direction_deg # yaw angle [deg]
         self.phi = tilt_angles # tilt angle [deg]
         self.a = axial_inductions # axial induction  
         self.r = rotor_diameters[0] / 2 # blade radius [m]
         self.rotor_diamaters = rotor_diameters
 
-        self.h = 0.3 * (2 * self.r) / self.x_inflow #simulation time step [sec]
+        self.h = 0.3 * (2 * self.r) / self.wind_speed #simulation time step [sec]
         self.sigma = 0.32 * self.r  
 
 
@@ -456,9 +460,9 @@ class FVW_model:
     ):
         c_p = self.calc_local_power_coef(turbine) 
         A_r = np.pi * self.r**2 
-        n = self.get_rotation_matrix(self.phi[turbine],self.psi[turbine]) @ self.e_x  
+        n = self.get_rotation_matrix(self.phi[turbine], self.psi[turbine] + self.wind_direction_deg) @ self.e_x  
         u_r = self.calc_rotor_disc_avg_velocity(turbine, iturbine)
-        P_i = 0.5 * c_p * A_r * np.dot(u_r, n)**3                   
+        P_i = 0.5 * c_p * A_r * np.dot(u_r, n)**3               
         return P_i
 
     # @param turbine    Index turbine [-]
@@ -644,7 +648,8 @@ class FVW_model:
         self,
     ):
         self.run_tests()
-        time_start = time.process_time()
+        time_start = time.time()
+        process_time_start = time.process_time()
         
         #initialiseren
         self.power = np.zeros((self.n_pt, self.k_tot)) # power array
@@ -655,7 +660,9 @@ class FVW_model:
             self.k = k
             
             if self.print_stuff:
-                print('nr_time_step =', k)
+                time_string = f'Time step: {round(k + 1)} of {round(self.k_tot)}'
+                time_string += ' ' * (100 - len(time_string))
+                print(time_string, end='\r')
 
             if self.ground_option == 1: #include ground effects
                 self.n_t = self.n_pt * 2
@@ -723,7 +730,8 @@ class FVW_model:
                 if self.continuous_power_calculation == True:
                     self.power[turbine][k] = self.calc_power(turbine, turbine)
 
-            end_time = time.process_time()
+            end_time = time.time()
+            process_end_time = time.process_time()
 
             if self.make_animation == True:
                 if k == 0:
@@ -732,7 +740,8 @@ class FVW_model:
                 self.make_frame(self.q_k, k)
 
         if self.print_stuff:
-            print('time taken', end_time - time_start)
+            print(f'Real time: {round(end_time - time_start, 2)} sec             ')
+            print(f'CPU time:  {round(process_end_time - process_time_start, 2)} sec             ')
 
 
     def get_turbine_powers(

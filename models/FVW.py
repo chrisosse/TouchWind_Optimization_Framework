@@ -1,11 +1,14 @@
 import numpy as np
-from cases import Case
 
+from cases import Case
 from models.FVW_model import FVW_model
 
 class FVW:
     '''
     TODO: Documentation!
+    
+    Note: The Free Vortex Wake model does not allow more than
+    one wind conditions at a time!
     '''
     def __init__(
         self,
@@ -25,6 +28,8 @@ class FVW:
             'n_r': 40,
             'n_e': 16,
             'n_p': 16,
+            'run_directly': False,
+            'print_stuff': True,
         }
 
         # Add input model params to standard model params
@@ -50,8 +55,12 @@ class FVW:
         model_params : dict
             Dictionary containing the model parameters
         '''
-        # Run initialize model again
-        self.farm.__init__(model_params)
+        # Add input model params to standard model params
+        for key, value in zip(model_params.keys(), model_params.values()):
+            self.model_params[key] = value
+
+        # Recreate instance of FVW model
+        self.farm = FVW_model(self.model_params)
         
 
     def reinitialize_farm(
@@ -72,6 +81,14 @@ class FVW:
         model_params : dict, optional
             Dictionary containing model parameters, by default None
         '''
+        # Print warnings if more than one wind conditions
+        if len(conditions['directions']) != 1:
+            n_directions = round(conditions['directions'][0], 2)
+            print(f'WARNING: The FWV model only works for one wind direction, only first direction is used: {n_directions}°')
+        if len(conditions['speeds']) != 1:
+            n_speeds = round(conditions['speeds'][0], 2)
+            print(f'WARNING: The FWV model only works for one wind direction, only first direction is used: {n_speeds} m/s')
+
         # Set model parameters to given or standard parameters
         if model_params is None:
             model_params = self.model_params
@@ -118,6 +135,10 @@ class FVW:
             3D array containing the turbine powers [W]. Shape:
             (n wind directions, n speeds, n turbines)
         '''
+        # Flatten all turbine variables
+        for key in list(turbines.keys()):
+            turbines[key] = turbines[key].flatten()
+
         # TODO Calculate axial induction from thrust coefficient
         axial_inductions = np.ones((len(turbines['thrustcoef_i']))) * 0.27
         

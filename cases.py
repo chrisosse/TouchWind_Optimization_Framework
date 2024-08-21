@@ -146,12 +146,18 @@ class Case:
             Array containing tilt angles [degrees]
         thrustcoef_i : np.ndarray, optional
             Array containing thrust coefficients [-], by default None
+            (Becomes 1 for all turbines, as 1 means it is dependent on
+            the wind conditions)
         D_rotor_i : np.ndarray, optional
             Array containing rotor diameters [m], by default None
+            (Becomes 126 for all turbines)
         '''
         # TODO: Add functionality to set CT and D for individual turbs
+        if thrustcoef_i is None:
+            thrustcoef_i = np.array(self.layout['n_turbines'] * [1])
         if D_rotor_i is None:
             D_rotor_i = np.array(self.layout['n_turbines'] * [126])
+        
 
         # Set turbines
         self.turbines = {
@@ -281,6 +287,9 @@ class CaseManager:
                 y_i = y_i.flatten() + case_dict[f'y_0']
                 yaw_i = np.ones(len(x_i)) * case_dict[f'yaw_0']
                 tilt_i = np.ones(len(x_i)) * case_dict[f'tilt_0']
+                thrustcoef_i = np.ones(len(x_i)) * case_dict[f'thrustcoef']
+                D_rotor_i = np.ones(len(x_i)) * case_dict[f'D_rotor']
+
             # if turbines are not equal
             else:
                 n_turbines = case_dict['n_x'] * case_dict['n_y']
@@ -288,12 +297,16 @@ class CaseManager:
                 y_i = np.ones(n_turbines)
                 yaw_i = np.ones(n_turbines)
                 tilt_i = np.ones(n_turbines)
+                thrustcoef_i = np.ones(n_turbines)
+                D_rotor_i = np.ones(n_turbines)
 
                 for turb in range(n_turbines):
                     x_i[turb] = case_dict[f'x_{turb}']
                     y_i[turb] = case_dict[f'y_{turb}']
                     yaw_i[turb] = case_dict[f'yaw_{turb}']
                     tilt_i[turb] = case_dict[f'tilt_{turb}']
+                    thrustcoef_i[turb] = case_dict[f'thrustcoef_{turb}']
+                    D_rotor_i[turb] = case_dict[f'D_rotor_{turb}']
             
             # Set Atmospheric Boundary Layer parameters
             if case_dict['load_ABL'] == 'standard':
@@ -329,7 +342,8 @@ class CaseManager:
             case.set_turbines(
                 yaw_i=yaw_i,
                 tilt_i=tilt_i,
-                D_rotor_i=case_dict['D_rotor'],
+                thrustcoef_i=thrustcoef_i,
+                D_rotor_i=D_rotor_i,
             )
 
             # Set case name

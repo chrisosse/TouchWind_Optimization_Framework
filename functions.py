@@ -427,8 +427,8 @@ def get_downwind_masks(
         being downwind. Shape: (idw, turb)
     '''
     # Get number of rows and columns
-    x_i = layout['x_i']
-    y_i = layout['y_i']
+    x_i = layout['x_i'].flatten()
+    y_i = layout['y_i'].flatten()
     n_x = layout['n_x']
     n_y = layout['n_y']
     n_turbines = n_x * n_y
@@ -444,14 +444,14 @@ def get_downwind_masks(
 
     for idw, wd in enumerate(wind_directions):
         # For bottom column (wd = 0°)
-        if wd % 360 >= 360 - exclude_range / 2 or wd % 360 <= 0 + exclude_range / 2:
+        if (wd % 360 >= 360 - exclude_range / 2 or wd % 360 <= 0 + exclude_range / 2) and n_y > 1:
             if use_coordinates:
                 downwind_masks[idw] = (downwind_masks[idw]) | (y_i == np.min(y_i))
             else:
                 downwind_masks[idw, :n_x] = True
         
         # For left row (wd = 90°)
-        if wd % 360 >= 90 - exclude_range / 2 and wd % 360 <= 90 + exclude_range / 2:
+        if (wd % 360 >= 90 - exclude_range / 2 and wd % 360 <= 90 + exclude_range / 2) and n_x > 1:
             if use_coordinates:
                 downwind_masks[idw] = (downwind_masks[idw]) | (x_i == np.min(x_i))
             else:
@@ -460,14 +460,14 @@ def get_downwind_masks(
                         downwind_masks[idw, turb] = True
 
         # For top column (wd = 180°)
-        if wd % 360 >= 180 - exclude_range / 2 and wd % 360 <= 180 + exclude_range / 2:
+        if (wd % 360 >= 180 - exclude_range / 2 and wd % 360 <= 180 + exclude_range / 2) and n_y > 1:
             if use_coordinates:
                 downwind_masks[idw] = (downwind_masks[idw]) | (y_i == np.max(y_i))
             else:
                 downwind_masks[idw, -n_x:] = True
 
         # For right row (wd = 270°)
-        if wd % 360 >= 270 - exclude_range / 2 and wd % 360 <= 270 + exclude_range / 2:
+        if (wd % 360 >= 270 - exclude_range / 2 and wd % 360 <= 270 + exclude_range / 2) and n_x > 1:
             if use_coordinates:
                 downwind_masks[idw] = (downwind_masks[idw]) | (x_i == np.max(x_i))
             else:
